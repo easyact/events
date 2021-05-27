@@ -46,7 +46,7 @@ functions:
     handler: hello.ApiGatewayHandler
     events:
       - httpApi:
-          path: /users/{email}/events
+          path: /v0/users/{email}/events
           method: post
           cors: true
           request:

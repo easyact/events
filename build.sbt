@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
   "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
   "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.1026",
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.3",
 )
 
 scalacOptions ++= Seq(
@@ -25,7 +26,9 @@ scalacOptions ++= Seq(
 )
 
 assemblyMergeStrategy in assembly := {
-  case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" =>
+  case "module-info.class" => MergeStrategy.discard
+  case PathList("META-INF", xs@_*) => MergeStrategy.discard
+  case PathList(ps@_*) if ps.last == "Log4j2Plugins.dat" =>
     Log4j2MergeStrategy.plugincache
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value

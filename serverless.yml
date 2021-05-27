@@ -42,12 +42,19 @@ package:
   artifact: target/scala-2.13/events.jar
 
 functions:
-  hello:
+  events:
     handler: hello.ApiGatewayHandler
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /users/{email}/events
+          method: post
+          cors: true
+          request:
+            parameters:
+              paths:
+                email: true
+    environment:
+      events_table: events
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

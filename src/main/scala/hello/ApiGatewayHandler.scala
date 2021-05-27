@@ -4,7 +4,6 @@ import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, Item, 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.logging.log4j.{LogManager, Logger}
 
 import java.util
 import scala.jdk.CollectionConverters._
@@ -12,10 +11,10 @@ import scala.sys.env
 
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
 
-  import hello.ApiGatewayHandler._
   import com.amazonaws.client.builder.AwsClientBuilder
-  import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
   import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Table}
+  import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
+  import hello.ApiGatewayHandler._
 
   val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2")).build
 
@@ -30,8 +29,8 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
 
     val items: Array[Item] = readArray(input.getBody).map(Item.fromMap)
     context.getLogger.log(s"request: ${items.mkString("Array(", ", ", ")")}")
-    val logger: Logger = LogManager.getLogger(getClass)
-    logger.debug(s"request: {}", items)
+//    val logger: Logger = LogManager.getLogger(getClass)
+//    logger.debug(s"request: {}", items)
 
     val writeItems = new TableWriteItems(tableName)
     val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems.withItemsToPut(items: _*))

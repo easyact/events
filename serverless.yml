@@ -14,7 +14,8 @@ provider:
 
   stage: dev
   region: cn-northwest-1
-
+  httpApi:
+    cors: true
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -48,11 +49,11 @@ functions:
       - httpApi:
           path: /v0/users/{email}/events
           method: post
-          cors: true
-          request:
-            parameters:
-              paths:
-                email: true
+#          cors: true
+#          request:
+#            parameters:
+#              paths:
+#                email: true
     environment:
       events_table: events
 #    The following are a few example events you can configure

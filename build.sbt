@@ -13,7 +13,7 @@ assemblyJarName in assembly := "events.jar"
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-lambda-java-events" % "3.8.0",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
-  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
+//  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
   "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.1026",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.3",
 )

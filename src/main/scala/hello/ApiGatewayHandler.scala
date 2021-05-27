@@ -6,20 +6,16 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.logging.log4j.{LogManager, Logger}
 
+import java.util
 import scala.jdk.CollectionConverters._
 import scala.sys.env
 
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
-  val scalaMapper: ObjectMapper = {
-    import com.fasterxml.jackson.databind.ObjectMapper
-    import com.fasterxml.jackson.module.scala.DefaultScalaModule
-    new ObjectMapper().registerModule(new DefaultScalaModule)
-  }
 
-  import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Table}
+  import hello.ApiGatewayHandler._
   import com.amazonaws.client.builder.AwsClientBuilder
-  import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-  import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
+  import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
+  import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Table}
 
   val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2")).build
 
@@ -32,9 +28,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
     val headers = Map("x-custom-response-header" -> "my custom response header value")
     //    val in = scalaMapper.writeValueAsString(input)
 
-    val items: Array[Item] = scalaMapper
-      .readValue(input.getBody, classOf[Array[java.util.Map[String, AnyRef]]])
-      .map(Item.fromMap)
+    val items: Array[Item] = readArray(input.getBody).map(Item.fromMap)
     context.getLogger.log(s"request: ${items.mkString("Array(", ", ", ")")}")
     val logger: Logger = LogManager.getLogger(getClass)
     logger.debug(s"request: {}", items)
@@ -42,5 +36,23 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
     val writeItems = new TableWriteItems(tableName)
     val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems.withItemsToPut(items: _*))
     ApiGatewayResponse(200, outcome.getUnprocessedItems.toString, headers.asJava, base64Encoded = true)
+  }
+}
+
+object ApiGatewayHandler {
+  val scalaMapper: ObjectMapper = {
+    import com.fasterxml.jackson.databind.ObjectMapper
+    import com.fasterxml.jackson.module.scala.DefaultScalaModule
+    new ObjectMapper().registerModule(new DefaultScalaModule)
+  }
+  val javaMapper: ObjectMapper = new ObjectMapper()
+
+  private def readArray(input: String) = javaMapper
+    .readValue(input, classOf[Array[util.Map[String, AnyRef]]])
+
+  def main(args: Array[String]): Unit = {
+    val maps: Array[util.Map[String, AnyRef]] = readArray("""[{"t": {"S":"S"}},{"t":"S"}]""")
+    val item = Item.fromMap(maps(0))
+    println(s"${maps.getClass}, ${maps(0).getClass}, $item")
   }
 }

@@ -9,8 +9,9 @@ frameworkVersion: '2'
 
 provider:
   name: aws
-  runtime: java8
+  runtime: java11
   lambdaHashingVersion: 20201221
+  timeout: 10
 
   stage: dev
   region: cn-northwest-1

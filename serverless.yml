@@ -62,7 +62,7 @@ package:
 
 functions:
   events:
-    handler: cn.easyact.events.ApiGatewayHandler
+    handler: cn.easyact.events.Post
     events:
       - httpApi:
           path: /v0/users/{email}/events
@@ -70,7 +70,7 @@ functions:
     environment:
       events_table: events
   get-events:
-    handler: cn.easyact.events.ApiGatewayHandler
+    handler: cn.easyact.events.Get
     events:
       - httpApi:
           path: /v0/users/{email}/events

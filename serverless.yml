@@ -67,11 +67,14 @@ functions:
       - httpApi:
           path: /v0/users/{email}/events
           method: post
-    #          cors: true
-    #          request:
-    #            parameters:
-    #              paths:
-    #                email: true
+    environment:
+      events_table: events
+  get-events:
+    handler: cn.easyact.events.ApiGatewayHandler
+    events:
+      - httpApi:
+          path: /v0/users/{email}/events
+          method: post
     environment:
       events_table: events
 #    The following are a few example events you can configure

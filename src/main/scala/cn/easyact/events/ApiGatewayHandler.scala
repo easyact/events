@@ -1,5 +1,6 @@
-package hello
+package cn.easyact.events
 
+import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, Item, TableWriteItems}
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
@@ -11,12 +12,15 @@ import scala.sys.env
 
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
 
+  import cn.easyact.events.ApiGatewayHandler._
   import com.amazonaws.client.builder.AwsClientBuilder
   import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Table}
   import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
-  import hello.ApiGatewayHandler._
 
-  val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2")).build
+  //  val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withEndpointConfiguration(
+  //    new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2")
+  //  ).build
+  val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withRegion(Regions.CN_NORTHWEST_1).build
 
   val dynamoDB = new DynamoDB(client)
 
@@ -29,8 +33,8 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
 
     val items: Array[Item] = readArray(input.getBody).map(Item.fromMap)
     context.getLogger.log(s"request: ${items.mkString("Array(", ", ", ")")}")
-//    val logger: Logger = LogManager.getLogger(getClass)
-//    logger.debug(s"request: {}", items)
+    //    val logger: Logger = LogManager.getLogger(getClass)
+    //    logger.debug(s"request: {}", items)
 
     val writeItems = new TableWriteItems(tableName)
     val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems.withItemsToPut(items: _*))
@@ -50,6 +54,8 @@ object ApiGatewayHandler {
     .readValue(input, classOf[Array[util.Map[String, AnyRef]]])
 
   def main(args: Array[String]): Unit = {
+    println(env)
+
     val maps: Array[util.Map[String, AnyRef]] = readArray("""[{"t": {"S":"S"}},{"t":"S"}]""")
     val item = Item.fromMap(maps(0))
     println(s"${maps.getClass}, ${maps(0).getClass}, $item")

@@ -1,4 +1,4 @@
-package hello
+package cn.easyact.events
 
 import scala.beans.BeanProperty
 

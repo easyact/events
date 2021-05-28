@@ -44,7 +44,7 @@ package:
 
 functions:
   events:
-    handler: hello.ApiGatewayHandler
+    handler: cn.easyact.events.ApiGatewayHandler
     events:
       - httpApi:
           path: /v0/users/{email}/events

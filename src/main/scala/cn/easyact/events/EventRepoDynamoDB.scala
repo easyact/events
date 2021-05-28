@@ -42,7 +42,7 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
         val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
           new TableWriteItems(tableName).withItemsToPut(items: _*))
-        now(outcome)
+        now(outcome.getUnprocessedItems)
       case Get(user) => now(List())
       case Store(event) => now(dynamoDB.getTable(tableName).putItem(toItem(event)))
     }

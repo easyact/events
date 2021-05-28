@@ -8,4 +8,4 @@ sealed trait EventRepoF[+A]
 
 case class Store(e: Event) extends EventRepoF[Unit]
 
-case class StoreJsonSeq() extends EventRepoF[Unit]
+case class StoreJsonSeq(jsonArr: String) extends EventRepoF[Unit]

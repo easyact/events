@@ -29,7 +29,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
   def handleRequest(input: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
     val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON).map { i =>
       i.withPrimaryKey("user.email", i.getString("user.email"),
-        "at", Instant.now())
+        "at", Instant.now().toString)
     }
     val log = context.getLogger
     log.log(s"env: $env")

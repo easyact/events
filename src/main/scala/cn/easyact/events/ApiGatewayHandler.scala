@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import com.fasterxml.jackson.databind.ObjectMapper
 
+import java.time.Instant
 import scala.jdk.CollectionConverters._
 import scala.sys.env
 
@@ -26,7 +27,10 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
   val table: Table = dynamoDB.getTable(tableName)
 
   def handleRequest(input: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
-    val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON)
+    val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON).map { i =>
+      i.withPrimaryKey("user.email", i.getString("user.email"),
+        "at", Instant.now())
+    }
     val log = context.getLogger
     log.log(s"env: $env")
     log.log(s"request: ${items.mkString("Array(", ", ", ")")}")

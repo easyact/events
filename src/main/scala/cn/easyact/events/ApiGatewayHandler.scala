@@ -1,19 +1,17 @@
 package cn.easyact.events
 
-import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, Item, TableWriteItems}
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.{Context, RequestHandler}
 import com.fasterxml.jackson.databind.ObjectMapper
 
-import java.util
 import scala.jdk.CollectionConverters._
 import scala.sys.env
 
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
 
   import cn.easyact.events.ApiGatewayHandler._
-  import com.amazonaws.client.builder.AwsClientBuilder
   import com.amazonaws.services.dynamodbv2.document.{DynamoDB, Table}
   import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 
@@ -28,7 +26,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
   val table: Table = dynamoDB.getTable(tableName)
 
   def handleRequest(input: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
-    val items: Array[Item] = readArray(input.getBody).map(Item.fromMap)
+    val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON)
     val log = context.getLogger
     log.log(s"env: $env")
     log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
@@ -48,14 +46,14 @@ object ApiGatewayHandler {
   }
   val javaMapper: ObjectMapper = new ObjectMapper()
 
-  private def readArray(input: String) = javaMapper
-    .readValue(input, classOf[Array[util.Map[String, AnyRef]]])
+  private def readArray(input: String) = scalaMapper.readTree(input).iterator().asScala.toArray.map(_.toString)
 
   def main(args: Array[String]): Unit = {
     println(env)
 
-    val maps: Array[util.Map[String, AnyRef]] = readArray("""[{"t": {"S":"S", "B":true}},{"t":"S"}]""")
-    val items = maps.map(Item.fromMap)
-    println(s"${maps.getClass}, ${maps(0).getClass}, ${items.mkString("Array(", ", ", ")")}")
+    val json = """[{"t": {"S":"S", "B":true}},{"t":"S"}]"""
+    val ss = readArray(json)
+    println(s"2: ${ss.getClass}, ${ss.head.getClass}, ${ss.mkString("Array(", ", ", ")")}")
+    println(s"3: ${ss.map(Item.fromJSON).mkString("Array(", ", ", ")")}")
   }
 }

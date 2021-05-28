@@ -28,17 +28,15 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
   val table: Table = dynamoDB.getTable(tableName)
 
   def handleRequest(input: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
-    val headers = Map("x-custom-response-header" -> "my custom response header value")
-    //    val in = scalaMapper.writeValueAsString(input)
-
     val items: Array[Item] = readArray(input.getBody).map(Item.fromMap)
-    context.getLogger.log(s"request: ${items.mkString("Array(", ", ", ")")}")
-    //    val logger: Logger = LogManager.getLogger(getClass)
-    //    logger.debug(s"request: {}", items)
-
-    val writeItems = new TableWriteItems(tableName)
-    val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems.withItemsToPut(items: _*))
-    ApiGatewayResponse(200, outcome.getUnprocessedItems.toString, headers.asJava, base64Encoded = true)
+    val log = context.getLogger
+    log.log(s"env: $env")
+    log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
+    val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
+      new TableWriteItems(tableName).withItemsToPut(items: _*))
+    ApiGatewayResponse(200, outcome.getUnprocessedItems.toString,
+      Map("x-custom-response-header" -> "my custom response header value").asJava,
+      base64Encoded = true)
   }
 }
 
@@ -56,8 +54,8 @@ object ApiGatewayHandler {
   def main(args: Array[String]): Unit = {
     println(env)
 
-    val maps: Array[util.Map[String, AnyRef]] = readArray("""[{"t": {"S":"S"}},{"t":"S"}]""")
-    val item = Item.fromMap(maps(0))
-    println(s"${maps.getClass}, ${maps(0).getClass}, $item")
+    val maps: Array[util.Map[String, AnyRef]] = readArray("""[{"t": {"S":"S", "B":true}},{"t":"S"}]""")
+    val items = maps.map(Item.fromMap)
+    println(s"${maps.getClass}, ${maps(0).getClass}, ${items.mkString("Array(", ", ", ")")}")
   }
 }

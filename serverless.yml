@@ -16,6 +16,20 @@ provider:
   region: cn-northwest-1
   httpApi:
     cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: dynamodb:scan
+          Resource:
+            - Fn::Join:
+                - ':'
+                -
+                  - arn:aws-cn:dynamodb
+                  - Ref: 'AWS::Region'
+                  - Ref: 'AWS::AccountId'
+                  - table/events
+
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -49,11 +63,11 @@ functions:
       - httpApi:
           path: /v0/users/{email}/events
           method: post
-#          cors: true
-#          request:
-#            parameters:
-#              paths:
-#                email: true
+    #          cors: true
+    #          request:
+    #            parameters:
+    #              paths:
+    #                email: true
     environment:
       events_table: events
 #    The following are a few example events you can configure

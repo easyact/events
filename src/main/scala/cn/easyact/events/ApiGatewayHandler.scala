@@ -11,6 +11,12 @@ import scala.sys.env
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
   implicit def f[A](eventRepoF: EventRepoF[A]): EventRepo[A] = Free.liftF(eventRepoF)
 
+  val scalaMapper = {
+    import com.fasterxml.jackson.databind.ObjectMapper
+    import com.fasterxml.jackson.module.scala.DefaultScalaModule
+    new ObjectMapper().registerModule(new DefaultScalaModule)
+  }
+
   def handleRequest(req: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
     val log: LambdaLogger = context.getLogger
     log.log(s"env: $env")
@@ -20,8 +26,9 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
       case "GET" => Get(req.getPathParameters.get("email"))
     }
     val r = EventRepoDynamoDB(log).apply(cmd).unsafePerformSync
-    log.log(s"outcome: $r")
-    ApiGatewayResponse(200, r.toString,
+    val resp = scalaMapper.writeValueAsString(r)
+    log.log(s"outcome: $resp")
+    ApiGatewayResponse(200, resp,
       Map("x-custom-response-header" -> "my custom response header value").asJava,
       base64Encoded = true)
   }

@@ -30,7 +30,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
     val log = context.getLogger
     log.log(s"env: $env")
     val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON).map { i =>
-      val email = i.getString("user.email")
+      val email: String = i.getMap("user").get("email")
       val at = Instant.now().toString
       val item = i.withPrimaryKey("user.email", email, "at", at)
       log.log(s"Mapping email: $email, item: $item, at: $at")

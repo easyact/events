@@ -10,4 +10,4 @@ case class Store(event: String) extends EventRepoF[Any]
 
 case class StoreJsonSeq(jsonArr: String) extends EventRepoF[Any]
 
-case class GetEvents(user: String) extends EventRepoF[List[Event]]
+case class Get(user: String) extends EventRepoF[List[Event]]

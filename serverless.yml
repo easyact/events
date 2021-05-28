@@ -16,6 +16,7 @@ provider:
   region: cn-northwest-1
   httpApi:
     cors: true
+    payload: '1.0'
   iam:
     role:
       statements:
@@ -62,19 +63,11 @@ package:
 
 functions:
   events:
-    handler: cn.easyact.events.Post
+    handler: cn.easyact.events.ApiGatewayHandler
     events:
       - httpApi:
           path: /v0/users/{email}/events
-          method: post
-    environment:
-      events_table: events
-  get-events:
-    handler: cn.easyact.events.Get
-    events:
-      - httpApi:
-          path: /v0/users/{email}/events
-          method: get
+          method: '*'
     environment:
       events_table: events
 #    The following are a few example events you can configure

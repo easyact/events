@@ -43,10 +43,15 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
           new TableWriteItems(tableName).withItemsToPut(items: _*))
         now(outcome)
+      case Get(user) => now(List(user))
+      case Store(event) => now(dynamoDB.getTable(tableName).putItem(toItem(event)))
     }
   }
 
-  private def toItems(jsonArr: String): Array[Item] = jsonToStrings(jsonArr).map(Item.fromJSON).map { i =>
+  private def toItems(jsonArr: String): Array[Item] = jsonToStrings(jsonArr).map(toItem)
+
+  private def toItem(s: String) = {
+    val i = Item.fromJSON(s)
     val email: String = i.getMap("user").get("email")
     val at = Instant.now().toString
     val item = i.withPrimaryKey("user.email", email, "at", at)

@@ -6,7 +6,7 @@ trait Event {
 
 sealed trait EventRepoF[+A]
 
-case class Store(e: Event) extends EventRepoF[Unit]
+case class Store(event: String) extends EventRepoF[Any]
 
 case class StoreJsonSeq(jsonArr: String) extends EventRepoF[Any]
 

@@ -27,12 +27,15 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
   val table: Table = dynamoDB.getTable(tableName)
 
   def handleRequest(input: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {
-    val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON).map { i =>
-      i.withPrimaryKey("user.email", i.getString("user.email"),
-        "at", Instant.now().toString)
-    }
     val log = context.getLogger
     log.log(s"env: $env")
+    val items: Array[Item] = readArray(input.getBody).map(Item.fromJSON).map { i =>
+      val email = i.getString("user.email")
+      val at = Instant.now().toString
+      val item = i.withPrimaryKey("user.email", email, "at", at)
+      log.log(s"Mapping email: $email, item: $item, at: $at")
+      item
+    }
     log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
     val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
       new TableWriteItems(tableName).withItemsToPut(items: _*))

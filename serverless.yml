@@ -20,7 +20,11 @@ provider:
     role:
       statements:
         - Effect: Allow
-          Action: dynamodb:scan
+          Action:
+            - dynamodb:scan
+            - dynamodb:BatchWriteItem
+            - dynamodb:DeleteItem
+            - dynamodb:PutItem
           Resource:
             - Fn::Join:
                 - ':'

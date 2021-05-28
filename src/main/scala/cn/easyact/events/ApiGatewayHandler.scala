@@ -8,7 +8,7 @@ import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 import scala.sys.env
 
-class PutEventsHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
+class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
   implicit def f[A](eventRepoF: EventRepoF[A]): EventRepo[A] = Free.liftF(eventRepoF)
 
   def handleRequest(req: APIGatewayProxyRequestEvent, context: Context): ApiGatewayResponse = {

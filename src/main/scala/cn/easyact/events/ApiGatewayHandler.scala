@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger, RequestHandler}
 import scalaz.Free
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scala.sys.env
 

@@ -9,7 +9,7 @@ frameworkVersion: '2'
 
 provider:
   name: aws
-  runtime: java11
+  runtime: java8
   lambdaHashingVersion: 20201221
 
   stage: dev
@@ -59,7 +59,7 @@ provider:
 # Make sure to run "sbt assembly" to create a jar file
 # with all your dependencies and put that jar file name here.
 package:
-  artifact: target/scala-2.13/events.jar
+  artifact: target/scala-2.12/events.jar
 
 functions:
   events:

@@ -4,7 +4,8 @@ import sbtrelease.Version
 name := "events"
 
 resolvers += Resolver.sonatypeRepo("public")
-scalaVersion := "2.13.5"
+scalaVersion := "2.12.10"
+//scalaVersion := "2.13.5"
 releaseNextVersion := { ver =>
   Version(ver).map(_.bumpMinor.string).getOrElse("Error")
 }
@@ -12,7 +13,7 @@ assemblyJarName in assembly := "events.jar"
 
 libraryDependencies ++= Seq(
   // https://mvnrepository.com/artifact/org.scalaz/scalaz-concurrent
-  "org.scalaz" % "scalaz-concurrent_2.13.0-M5" % "7.3.0-M27",
+  "org.scalaz" %% "scalaz-concurrent" % "7.3.0-M27",
   "com.amazonaws" % "aws-lambda-java-events" % "3.8.0",
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
   //  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",

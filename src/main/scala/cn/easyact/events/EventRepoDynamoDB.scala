@@ -10,7 +10,7 @@ import scalaz.concurrent.Task.now
 import scalaz.~>
 
 import java.time.Instant
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.sys.env
 
 trait EventRepoInterpreter {

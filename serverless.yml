@@ -27,6 +27,7 @@ provider:
             - dynamodb:BatchWriteItem
             - dynamodb:DeleteItem
             - dynamodb:PutItem
+            - dynamodb:Query
           Resource:
             - Fn::Join:
                 - ':'

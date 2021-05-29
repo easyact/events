@@ -11,7 +11,7 @@ import scala.sys.env
 class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiGatewayResponse] {
   implicit def f[A](eventRepoF: EventRepoF[A]): EventRepo[A] = Free.liftF(eventRepoF)
 
-  val scalaMapper = {
+  private val scalaMapper = {
     import com.fasterxml.jackson.databind.ObjectMapper
     import com.fasterxml.jackson.module.scala.DefaultScalaModule
     new ObjectMapper().registerModule(new DefaultScalaModule)
@@ -25,6 +25,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
       case "POST" => StoreJsonSeq(req.getBody)
       case "GET" => Get(req.getPathParameters.get("email"))
     }
+    log.log(s"Will exec cmd: $cmd")
     val r = EventRepoDynamoDB(log).apply(cmd).unsafePerformSync
     val resp = scalaMapper.writeValueAsString(r)
     log.log(s"outcome: $resp")

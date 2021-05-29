@@ -35,6 +35,8 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
 
   private def jsonToStrings(input: String) = scalaMapper.readTree(input).iterator().asScala.toArray.map(_.toString)
 
+  private val table = dynamoDB.getTable(tableName)
+
   def step: EventRepoF ~> Task = new (EventRepoF ~> Task) {
     override def apply[A](fa: EventRepoF[A]): Task[A] = fa match {
       case StoreJsonSeq(jsonArr) =>
@@ -43,8 +45,11 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
           new TableWriteItems(tableName).withItemsToPut(items: _*))
         now(outcome.getUnprocessedItems)
-      case Get(user) => now(List())
-      case Store(event) => now(dynamoDB.getTable(tableName).putItem(toItem(event)))
+      case Get(user) =>
+        val outcomes = table.query("user.email", user)
+        log.log(s"Get events of $user are: $outcomes")
+        now(outcomes.asScala.map(_.asMap()).toSeq)
+      case Store(event) => now(table.putItem(toItem(event)))
     }
   }
 

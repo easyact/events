@@ -49,6 +49,10 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         val outcomes = table.query("user.email", user)
         log.log(s"Get events of $user are: $outcomes")
         now(outcomes.asScala.map(_.asMap()).toSeq)
+      case Delete(user) =>
+        val items = new TableWriteItems(tableName).withHashOnlyKeysToDelete("user.email", user)
+        val outcome = dynamoDB.batchWriteItem(items)
+        now(outcome)
       case Store(event) => now(table.putItem(toItem(event)))
     }
   }

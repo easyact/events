@@ -1,0 +1,42 @@
+{
+  headers: {
+    content-length=132,
+    content-type=application/json,
+    host=grac2ocq56.execute-api.cn-northwest-1.amazonaws.com.cn,
+    x-amzn-trace-id=Root=1-60b0bc13-5722100a3b13f5110ae623f7,
+    x-forwarded-for=127.0.0.1,
+    180.164.63.193,
+    x-forwarded-port=443,
+    x-forwarded-proto=https
+  },
+  pathParameters: {
+    email=damoco@easyact.cn
+  },
+  requestContext: {
+    accountId: 020064664914,
+    stage: $default,
+    requestId: ACJTEhJa5PgEJ1g=,
+    apiId: grac2ocq56
+  },
+  body: [
+    {
+      "type": "IMPORT_BUDGET",
+      "user": {
+        "email": "damoco"
+      },
+      "to": {
+        "version": "0"
+      },
+      "payload": {
+        "assets": [
+          {
+            "id": "",
+            "name": "food",
+            "amount": 10
+          }
+        ]
+      }
+    }
+  ],
+  isBase64Encoded: false
+}

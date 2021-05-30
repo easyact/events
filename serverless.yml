@@ -69,7 +69,13 @@ functions:
     events:
       - httpApi:
           path: /v0/users/{email}/events
-          method: '*'
+          method: 'GET'
+      - httpApi:
+          path: /v0/users/{email}/events
+          method: 'POST'
+      - httpApi:
+          path: /v0/users/{email}/events
+          method: 'DELETE'
     environment:
       events_table: events
 #    The following are a few example events you can configure

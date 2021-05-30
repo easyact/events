@@ -20,6 +20,8 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.1026",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.3",
 )
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.9"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test"
 
 scalacOptions ++= Seq(
   "-unchecked",

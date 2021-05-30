@@ -1,7 +1,7 @@
 package cn.easyact.events
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, DynamoDB, Item, TableWriteItems}
+import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, DynamoDB, Item, PrimaryKey, TableWriteItems}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -37,6 +37,10 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
 
   private val table = dynamoDB.getTable(tableName)
 
+  private val HASH_KEY = "user.email"
+
+  private val RANGE_KEY = "at"
+
   def step: EventRepoF ~> Task = new (EventRepoF ~> Task) {
     override def apply[A](fa: EventRepoF[A]): Task[A] = fa match {
       case StoreJsonSeq(jsonArr) =>
@@ -46,15 +50,20 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
           new TableWriteItems(tableName).withItemsToPut(items: _*))
         now(outcome.getUnprocessedItems)
       case Get(user) =>
-        val outcomes = table.query("user.email", user)
+        val outcomes = queryBy(user)
         log.log(s"Get events of $user are: $outcomes")
         now(outcomes.asScala.map(_.asMap()).toSeq)
       case Delete(user) =>
-        val items = new TableWriteItems(tableName).withHashOnlyKeysToDelete("user.email", user)
+        val keys = queryBy(user).asScala.map(i => new PrimaryKey(HASH_KEY, user, RANGE_KEY, i.getString(RANGE_KEY)))
+        val items = new TableWriteItems(tableName).withPrimaryKeysToDelete(keys.toSeq: _*)
         val outcome = dynamoDB.batchWriteItem(items)
         now(outcome)
       case Store(event) => now(table.putItem(toItem(event)))
     }
+  }
+
+  private def queryBy[A](user: String) = {
+    table.query(HASH_KEY, user)
   }
 
   private def toItems(jsonArr: String): Array[Item] = jsonToStrings(jsonArr).map(toItem)
@@ -63,8 +72,8 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
     val i = Item.fromJSON(s)
     val email: String = i.getMap("user").get("email")
     val at = Instant.now().toString
-    val item = i.withPrimaryKey("user.email", email, "at", at)
-    log.log(s"Mapping email: $email, item: $item, at: $at")
+    val item = i.withPrimaryKey(HASH_KEY, email, RANGE_KEY, at)
+    log.log(s"Mapping email: $email, item: $item, $RANGE_KEY: $RANGE_KEY")
     item
   }
 

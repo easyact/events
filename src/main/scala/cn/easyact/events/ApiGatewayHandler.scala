@@ -30,7 +30,7 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
     val resp = scalaMapper.writeValueAsString(r)
     log.log(s"outcome: $resp")
     ApiGatewayResponse(200, resp,
-      Map("x-custom-response-header" -> "my custom response header value").asJava,
+      Map("Content-Type" -> "application/json").asJava,
       base64Encoded = true)
   }
 }

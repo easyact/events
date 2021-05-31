@@ -47,8 +47,8 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         val items = toItems(jsonArr)
         log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
         if (items.nonEmpty) {
-          val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
-            new TableWriteItems(tableName).withItemsToPut(items: _*))
+          val writeItems = new TableWriteItems(tableName).withItemsToPut(items: _*)
+          val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems)
           now(outcome.getUnprocessedItems)
         } else {
           now(log.log(s"No op because empty events"))
@@ -59,9 +59,12 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         now(outcomes.asScala.map(_.asMap()).toSeq)
       case Delete(user) =>
         val keys = queryBy(user).asScala.map(i => new PrimaryKey(HASH_KEY, user, RANGE_KEY, i.getString(RANGE_KEY)))
-        val items = new TableWriteItems(tableName).withPrimaryKeysToDelete(keys.toSeq: _*)
-        val outcome = dynamoDB.batchWriteItem(items)
-        now(outcome)
+        if (keys.isEmpty) now(log.log(s"No op because empty events"))
+        else {
+          val items = new TableWriteItems(tableName).withPrimaryKeysToDelete(keys.toSeq: _*)
+          val outcome = dynamoDB.batchWriteItem(items)
+          now(outcome)
+        }
       case Store(event) => now(table.putItem(toItem(event)))
     }
   }
@@ -74,10 +77,10 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
 
   private def toItem(s: String) = {
     val i = Item.fromJSON(s)
-    val email: String = i.getMap("user").get("email")
+    val uid: String = i.getMap("user").get("id")
     val at = Instant.now().toString
-    val item = i.withPrimaryKey(HASH_KEY, email, RANGE_KEY, at)
-    log.log(s"Mapping email: $email, item: $item, $RANGE_KEY: $RANGE_KEY")
+    val item = i.withPrimaryKey(HASH_KEY, uid, RANGE_KEY, at)
+    log.log(s"Mapping uid: $uid, item: $item, $RANGE_KEY: $RANGE_KEY")
     item
   }
 

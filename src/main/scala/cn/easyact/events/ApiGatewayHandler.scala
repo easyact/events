@@ -23,8 +23,8 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
     log.log(s"req: $req")
     val cmd = req.getHttpMethod match {
       case "POST" => StoreJsonSeq(req.getBody)
-      case "GET" => Get(req.getPathParameters.get("email"))
-      case "DELETE" => Delete(req.getPathParameters.get("email"))
+      case "GET" => Get(req.getPathParameters.get("id"))
+      case "DELETE" => Delete(req.getPathParameters.get("id"))
     }
     log.log(s"Will exec cmd: $cmd")
     val r = EventRepoDynamoDB(log).apply(cmd).unsafePerformSync

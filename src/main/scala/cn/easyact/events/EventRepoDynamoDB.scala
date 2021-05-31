@@ -37,7 +37,7 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
 
   private val table = dynamoDB.getTable(tableName)
 
-  private val HASH_KEY = "user.email"
+  private val HASH_KEY = "user.id"
 
   private val RANGE_KEY = "at"
 
@@ -51,8 +51,7 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
             new TableWriteItems(tableName).withItemsToPut(items: _*))
           now(outcome.getUnprocessedItems)
         } else {
-          log.log(s"No op because empty events")
-          now(Unit)
+          now(log.log(s"No op because empty events"))
         }
       case Get(user) =>
         val outcomes = queryBy(user)

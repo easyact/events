@@ -68,13 +68,13 @@ functions:
     handler: cn.easyact.events.ApiGatewayHandler
     events:
       - httpApi:
-          path: /v0/users/{email}/events
+          path: /v0/users/{id}/events
           method: 'GET'
       - httpApi:
-          path: /v0/users/{email}/events
+          path: /v0/users/{id}/events
           method: 'POST'
       - httpApi:
-          path: /v0/users/{email}/events
+          path: /v0/users/{id}/events
           method: 'DELETE'
     environment:
       events_table: events

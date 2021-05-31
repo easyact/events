@@ -46,9 +46,14 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
       case StoreJsonSeq(jsonArr) =>
         val items = toItems(jsonArr)
         log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
-        val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
-          new TableWriteItems(tableName).withItemsToPut(items: _*))
-        now(outcome.getUnprocessedItems)
+        if (items.nonEmpty) {
+          val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(
+            new TableWriteItems(tableName).withItemsToPut(items: _*))
+          now(outcome.getUnprocessedItems)
+        } else {
+          log.log(s"No op because empty events")
+          now(Unit)
+        }
       case Get(user) =>
         val outcomes = queryBy(user)
         log.log(s"Get events of $user are: $outcomes")

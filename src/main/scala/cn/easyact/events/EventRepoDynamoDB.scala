@@ -51,7 +51,8 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
           val outcome: BatchWriteItemOutcome = dynamoDB.batchWriteItem(writeItems)
           now(outcome.getUnprocessedItems)
         } else {
-          now(log.log(s"No op because empty events"))
+          log.log(s"No op because empty events")
+          now(Map())
         }
       case Get(user) =>
         val outcomes = queryBy(user)
@@ -59,7 +60,10 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
         now(outcomes.asScala.map(_.asMap()).toSeq)
       case Delete(user) =>
         val keys = queryBy(user).asScala.map(i => new PrimaryKey(HASH_KEY, user, RANGE_KEY, i.getString(RANGE_KEY)))
-        if (keys.isEmpty) now(log.log(s"No op because empty events"))
+        if (keys.isEmpty) {
+          log.log(s"No op because empty events")
+          now(Map())
+        }
         else {
           val items = new TableWriteItems(tableName).withPrimaryKeysToDelete(keys.toSeq: _*)
           val outcome = dynamoDB.batchWriteItem(items)

@@ -76,6 +76,9 @@ functions:
       - httpApi:
           path: /v0/users/{id}/events
           method: 'DELETE'
+      - httpApi:
+          path: /v0/users/{id}/events/{at}
+          method: 'PUT'
     environment:
       events_table: events
 #    The following are a few example events you can configure

@@ -28,6 +28,8 @@ class ApiGatewayHandler extends RequestHandler[APIGatewayProxyRequestEvent, ApiG
         } yield l
       case "GET" => Get(uid)
       case "DELETE" => Delete(uid)
+      case "PATCH" => AllAt(uid, scalaMapper.readTree(req.getBody).get("at").asText())
+      case "PUT" => Store(uid, req.getPathParameters.get("at"), req.getBody)
     }
     log.log(s"Will exec cmd: $cmd")
     val r = EventRepoDynamoDB(log).apply(cmd).unsafePerformSync

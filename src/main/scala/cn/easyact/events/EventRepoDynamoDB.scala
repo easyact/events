@@ -21,6 +21,9 @@ trait EventRepoInterpreter {
 }
 
 case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
+
+  import EventRepoDynamoDB._
+
   //  val client: AmazonDynamoDB = AmazonDynamoDBClientBuilder.standard.withEndpointConfiguration(
   //    new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2")
   //  ).build
@@ -37,10 +40,6 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
   }
 
   private val table = dynamoDB.getTable(tableName)
-
-  private val HASH_KEY = "user.id"
-
-  private val RANGE_KEY = "at"
 
   def step: EventRepoF ~> Task = new (EventRepoF ~> Task) {
 
@@ -100,26 +99,25 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
       table.query(spec)
     }
 
-  private def toItem(s: String, user: Option[String] = None, at: String = Instant.now().toString) = {
-    val i = Item.fromJSON(s)
-    val uid: String = user.getOrElse(i.getMap("user").get("id"))
-    val item = i.withPrimaryKey(HASH_KEY, uid, RANGE_KEY, at)
-    log.log(s"Mapping uid: $uid, item: $item, $RANGE_KEY: $RANGE_KEY")
-    item
-  }
-
   override def apply[A](action: EventRepo[A]): Task[A] = action.foldMap(step)
 
 }
 
 object EventRepoDynamoDB {
+  private val HASH_KEY = "user.id"
+  private val RANGE_KEY = "at"
   private val eventRepoDynamoDB = EventRepoDynamoDB(new LambdaLogger {
     override def log(message: String): Unit = println(message)
 
     override def log(message: Array[Byte]): Unit = println(message.mkString("Array(", ", ", ")"))
   })
 
-  import eventRepoDynamoDB._
+  def toItem(s: String, user: Option[String] = None, at: String = Instant.now().toString): Item = {
+    val i = Item.fromJSON(s)
+    val uid: String = user.getOrElse(i.getMap[String]("user").get("id"))
+    //    log.log(s"Mapping uid: $uid, item: $item, $RANGE_KEY: $RANGE_KEY")
+    i.withPrimaryKey(HASH_KEY, uid, RANGE_KEY, at)
+  }
 
   def main(args: Array[String]): Unit = {
     println(env)

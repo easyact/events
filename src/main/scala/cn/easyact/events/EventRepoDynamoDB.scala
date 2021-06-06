@@ -1,7 +1,9 @@
 package cn.easyact.events
 
+import cn.easyact.events.ApiGatewayHandler.jsonToStrings
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, DynamoDB, Item, PrimaryKey, TableWriteItems}
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec
+import com.amazonaws.services.dynamodbv2.document.{BatchWriteItemOutcome, DynamoDB, Item, ItemCollection, PrimaryKey, QueryOutcome, RangeKeyCondition, TableWriteItems}
 import com.amazonaws.services.dynamodbv2.{AmazonDynamoDB, AmazonDynamoDBClientBuilder}
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -33,8 +35,6 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
     new ObjectMapper().registerModule(new DefaultScalaModule)
   }
 
-  private def jsonToStrings(input: String) = scalaMapper.readTree(input).iterator().asScala.toArray.map(_.toString)
-
   private val table = dynamoDB.getTable(tableName)
 
   private val HASH_KEY = "user.id"
@@ -42,9 +42,10 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
   private val RANGE_KEY = "at"
 
   def step: EventRepoF ~> Task = new (EventRepoF ~> Task) {
+
     override def apply[A](fa: EventRepoF[A]): Task[A] = fa match {
       case StoreJsonSeq(jsonArr) =>
-        val items = toItems(jsonArr)
+        val items = jsonArr.map(toItem)
         log.log(s"request: ${items.mkString("Array(", ", ", ")")}")
         if (items.nonEmpty) {
           val writeItems = new TableWriteItems(tableName).withItemsToPut(items: _*)
@@ -54,8 +55,8 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
           log.log(s"No op because empty events")
           now(Map())
         }
-      case Get(user) =>
-        val outcomes = queryBy(user)
+      case Get(user, beginAt) =>
+        val outcomes = queryBy(user, beginAt)
         log.log(s"Get events of $user are: $outcomes")
         now(outcomes.asScala.map(_.asMap()).toSeq)
       case Delete(user) =>
@@ -73,11 +74,12 @@ case class EventRepoDynamoDB(log: LambdaLogger) extends EventRepoInterpreter {
     }
   }
 
-  private def queryBy[A](user: String) = {
-    table.query(HASH_KEY, user)
-  }
-
-  private def toItems(jsonArr: String): Array[Item] = jsonToStrings(jsonArr).map(toItem)
+  def queryBy(user: String, beginAt: Option[String] = None): ItemCollection[QueryOutcome] = beginAt
+    .fold(table.query(HASH_KEY, user)) { at: String =>
+      val spec = new QuerySpec().withHashKey(HASH_KEY, user)
+        .withRangeKeyCondition(new RangeKeyCondition("at").gt(at))
+      table.query(spec)
+    }
 
   private def toItem(s: String) = {
     val i = Item.fromJSON(s)
